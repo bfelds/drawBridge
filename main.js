@@ -51,7 +51,7 @@ function DataProcessor()
 		var state = {
 			callback: callback,
 			objectSize: parser.BridgeParse.objectLength+1, //+1 for newline character
-			results:[]
+			results:[],
 		}
 		openSampleData(file,function(fileHandle){
 			fd=fileHandle;

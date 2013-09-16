@@ -1,11 +1,17 @@
 var maps = require('./maps.js');
-
+var assert = require('assert');
 /**
  * Item:1
  * Federal Information Processing Standards (FIPS) code for States
  */
 var State = function() {
 	this.objectLength = 2;
+	this.parseCheck = function(start,end) {
+		var startPosition=0;
+		var stopPosition=2;
+		assert.equal(startPosition,start);
+		assert.equal(stopPosition,end);
+	};
 	this.name = "STATE";
 	this.parse = function(buffer, obj) {
 		obj[this.name] = this.Types[+buffer];
@@ -396,9 +402,14 @@ var IsOnBaseNetwork = function() {
 	this.name = "IS_ON_BASE_NETWORK";
 	this.parse = function(buffer, obj) {
 		obj[this.name] = 1===(+buffer);
-	}
+	};
 };
 
+/**
+ * Item:13A
+ * inventory route for the State's linear 
+ * referencing system (LRS)
+ */
 var LRSInventoryRoute = function() {
 	this.objectLength = 10;
 	this.name = "LRS_INVENTORY_ROUTE";
@@ -406,9 +417,14 @@ var LRSInventoryRoute = function() {
 		var val = parseInt(+buffer,10);
 		if(val===0) val=undefined;
 		obj[this.name] = val;
-	}
+	};
 };
 
+/**
+ * Item:13B
+ * Inventory subroute for the State's linear 
+ * referencing system (LRS)
+ */
 var LRSInventorySubRoute = function() {
 	this.objectLength = 2;
 	this.name = "LRS_INVENTORY_SUBROUTE";
@@ -416,9 +432,1392 @@ var LRSInventorySubRoute = function() {
 		var val = parseInt(+buffer,10);
 		if(val===0) val=undefined;
 		obj[this.name] = val;
+	};
+};
+
+/**
+ * Item:16
+ */
+var Latitude = function() {
+	this.objectLength = 8;
+	this.name = "LATITUDE";
+	this.parse = function(buffer, obj) {
+		var match = buffer.match(/(\d\d)(\d\d)(\d\d\d\d)/);
+		if(!match) {
+			obj[this.name] = undefined;
+			return;
+		}
+		var deg = parseInt(match[1],10);
+		var min = parseInt(match[2],10);
+		var sec = parseFloat(match[3].trim()+'e-2');
+		obj[this.name] = {
+			degrees: deg,
+			minutes: min,
+			seconds: sec,
+			decimal: deg+min/60+sec/3600
+		};
+	};
+};
+
+/**
+ * Item:17
+ */
+var Longitude = function() {//
+	this.objectLength = 9;
+	this.name = "LONGITUDE";
+	this.parse = function(buffer, obj) {
+		var match = buffer.match(/(\d\d\d)(\d\d)(\d\d\d\d)/);
+		if(!match) {
+			obj[this.name] = undefined;
+			return;
+		}
+		var deg = -1*parseInt(match[1],10);
+		var min = parseInt(match[2],10);
+		var sec = parseFloat(match[3].trim()+'e-2');
+		obj[this.name] = {
+			degrees: deg,
+			minutes: min,
+			seconds: sec,
+			decimal: deg+min/60+sec/3600
+		};
+	};
+};
+
+/**
+ * Item:19
+ * Actual length to the nearest kilometer of the detour length
+ * The detour length should represent the total additional travel
+ * for a vehicle which would result from closing of the bridge.
+ */
+var DetourLength = function() {
+	this.objectLength = 3;
+	this.name = "DETOUR_LENGTH";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:20
+ */
+var Toll = function() {
+	this.objectLength = 1;
+	this.name = "TOLL";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+	this.Types = {
+		0: "N/A",
+		1: "Toll Bridge",
+		2: "Toll Road",
+		3: "Free Road",
+		4: "Interstate Toll",
+		5: "Secretarial Toll Bridge"
+	};
+};
+
+/**
+ * Item:21
+ * The actual name(s) of the agency(s) responsible 
+ * for the maintenance of the structure
+ */
+var MaintenanceResponsibility = function() {
+	this.objectLength = 2;
+	this.name = "MAINTENANCE_RESPONSIBILITY";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = maps.MAINTENANCE_RESPONSIBILITY_MAP[+buffer];
+	};
+};
+
+/**
+ * Item:22
+ * Secondary owner names (see Item:21)
+ */
+var Owner = function() {
+	this.objectLength = 2;
+	this.name = "OWNER";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = maps.MAINTENANCE_RESPONSIBILITY_MAP[+buffer];
+	};
+};
+
+/**
+ * Item:26
+ */
+var FunctionalClassificationofInventoryRoute = function() {
+	this.objectLength = 2;
+	this.name = "FUNCITONAL_CLASSIFICATION_OF_INVENTORY_ROUTE";
+
+	this.parse = function(buffer, obj) {
+		obj[this.name] = new Object(this.Types[+buffer]);
+	};
+
+	this.ClassificationGroups = {
+		"PRINCIPAL":0,
+		"NON_PRINCIPAL":1,
+		"LOCAL":2
+	};
+
+	this.Types = {
+		1: {
+			type: "Rural",
+			desc: "Principal Arterial - Interstate",
+			group: this.ClassificationGroups.PRINCIPAL
+		},
+		2: {
+			type: "Rural",
+			desc: "Principal Arterial - Other",
+			group: this.ClassificationGroups.NON_PRINCIPAL
+		},
+		6: {
+			type: "Rural",
+			desc: "Minor Arterial",
+			group: this.ClassificationGroups.LOCAL
+		},
+		7: {
+			type: "Rural",
+			desc: "Major Collector",
+			group: this.ClassificationGroups.LOCAL
+		},
+		8: {
+			type: "Rural",
+			desc: "Minor Collector",
+			group: this.ClassificationGroups.LOCAL
+		},
+		9: {
+			type: "Rural",
+			desc: "Local",
+			group: this.ClassificationGroups.LOCAL
+		},
+
+		11: {
+			type: "Urban",
+			desc: "Principal Arterial - Interstate",
+			group: this.ClassificationGroups.PRINCIPAL
+		},
+		12: {
+			type: "Urban",
+			desc: "Principal Arterial - Other Freeways or Expressways",
+			group: this.ClassificationGroups.PRINCIPAL
+		},
+		14: {
+			type: "Urban",
+			desc: "Other Principal Arterial",
+			group: this.ClassificationGroups.NON_PRINCIPAL
+		},
+		16: {
+			type: "Urban",
+			desc: "Minor Arterial",
+			group: this.ClassificationGroups.NON_PRINCIPAL
+		},
+		17: {
+			type: "Urban",
+			desc: "Collector",
+			group: this.ClassificationGroups.NON_PRINCIPAL
+		},
+		19: {
+			type: "Urban",
+			desc: "Local",
+			group: this.ClassificationGroups.LOCAL
+		},
+	};
+};
+
+/**
+ * Item:27
+ */
+var YearBuilt = function() {
+	this.objectLength = 4;
+	this.name = "YEAR_BUILT";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:28A
+ */
+var LanesOnStructure = function() {
+	this.objectLength = 2;
+	this.name = "LANES_ON_STRUCTURE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:28B
+ */
+var LanesUnderStructure = function() {
+	this.objectLength = 2;
+	this.name = "LANES_UNDER_STRUCTURE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:29
+ */
+var AverageDailyTraffic = function() {
+	this.objectLength = 6;
+	this.name = "AVERAGE_DAILY_TRAFFIC";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:30
+ */
+var YearOfAverageDailyTraffic = function() {
+	this.objectLength = 4;
+	this.name = "YEAR_OF_AVERAGE_DAILY_TRAFFIC";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:31
+ * Live load for which the structure was designed
+ */
+var DesignLoad = function() {
+	this.objectLength = 1;
+	this.name = "DESIGN_LOAD";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		1: {metric:"M 9", english:"H 10"},
+		2: {metric:"M 13.5", english:"H 15"},
+		3: {metric:"MS 13.5", english:"HS 15"},
+		4: {metric:"M 18", english:"H 20"},
+		5: {metric:"MS 18", english:"HS 20"},
+		6: {metric:"MS 18+Mod", english:"HS 20+Mod"},
+		7: {metric:"Pedestrian", english:"Pedestrian"},
+		8: {metric:"Railroad", english:"Railroad"},
+		9: {metric:"MS 22.5", english:"HS 25"},
+		0: undefined,
+	};
+};
+
+/**
+ * Item:32
+ */
+var ApproachRoadwayWidth = function() {
+	this.objectLength = 4;
+	this.name = "APPROACH_ROADWAY_WIDTH";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:33
+ */
+var BridgeMedianType = function() {
+	this.objectLength = 1;
+	this.name = "BRIDGE_MEDIAN_TYPE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		0: "None",
+		1: "Open",
+		2: "Closed Mountable",
+		3: "Closed Non-Mountable",
+	};
+};
+
+/**
+ * Item:34
+ * the angle between the centerline of a pier 
+ * and a line normal to the roadway centerline.
+ */
+var Skew = function() {
+	this.objectLength = 2;
+	this.name = "SKEW";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:35
+ * Indicate if the structure is flared 
+ * (i.e., the width of the structure varies).
+ */
+var StructureFlared = function() {
+	this.objectLength = 1;
+	this.name = "STRUCTURE_FLARED";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = buffer==="1"?true:false;
+	};
+};
+
+/**
+ * Item:36A
+ * Bridge railings should be evaluated using the
+ * current AASHTO Standard Specifications for Highway Bridges
+ */
+var BridgeRailings = function() {
+	this.objectLength = 1;
+	this.name = "BRIDGE_RAILINGS";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		0: "Not Acceptable",
+		1: "Acceptable",
+		N: "N/A",
+	};
+};
+
+/**
+ * Item:36B
+ * The transition from approach guardrail
+ *  to bridge railing requirements.
+ */
+var Transitions = function() {
+	this.objectLength = 1;
+	this.name = "TRANSITIONS";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		0: "Not Acceptable",
+		1: "Acceptable",
+		N: "N/A",
+	};
+};
+
+/**
+ * Item:36C
+ * The structural adequacy and compatibility of approach guardrail
+ */
+var ApproachGuardrail = function() {
+	this.objectLength = 1;
+	this.name = "APPROACH_GUARDRAIL";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		0: "Not Acceptable",
+		1: "Acceptable",
+		N: "N/A",
+	};
+};
+
+/**
+ * Item:36D
+ * the ends of approach guardrails to bridges 
+ * should be flared, buried, made breakaway, or shielded.
+ */
+var ApproachGuardrailEnds = function() {
+	this.objectLength = 1;
+	this.name = "APPROACH_GUARDRAIL_ENDS";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		0: "Not Acceptable",
+		1: "Acceptable",
+		N: "N/A",
+	};
+};
+
+/**
+ * Item:37
+ * Types:
+ * 1 Bridge is on the National Register of Historic Places.
+ * 2 Bridge is eligible for the National Register of Historic Places.
+ * 3 Bridge is possibly eligible for the National Register of Historic Places (requires further 
+ * investigation before determination can be made) or  bridge is on a State or local historic register.
+ * 4 Historical significance is not determinable at this time.
+ * 5 Bridge is not eligible for the National Register of Historic Places.
+ */
+var HistoricalSignificance = function() {
+	this.objectLength = 1;
+	this.name = "HISTORICAL_SIGNIFICANCE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		1: "NRHP",
+		2: "NRHP Eligible",
+		3: "NRHP Eligible or State/Local Register",
+		4: "N/A",
+		5: "Not Eligible",
+	};
+};
+
+/**
+ * Item:38
+ * A bridge permit for navigation is required
+ */
+var NavigationControl = function() {
+	this.objectLength = 1;
+	this.name = "NAVIGATION_CONTROL";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		N: "N/A",
+		0: "No Navigation Control",
+		1: "Navigation Control",
+	};
+};
+
+/**
+ * Item:39
+ */
+var NavigationVerticalClearance = function() {
+	this.objectLength = 4;
+	this.name = "NAVIGATION_VERTICAL_CLEARANCE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:40
+ */
+var NavigationHorizontalClearance = function() {
+	this.objectLength = 5;
+	this.name = "NAVIGATION_HORIZONTAL_CLEARANCE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:41
+ */
+var OperationalStatus = function() {
+	this.objectLength = 1;
+	this.name = "OPERATIONAL_STATUS";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		A: "Open",
+		B: "Open - Non-binding signage",
+		D: "Open - Temporary Shoring",
+		E: "Open - Temporary Structure",
+		G: "Closed - New Structure",
+		K: "Closed",
+		P: "Posted for load restrictions",
+		R: "Posted for non-load restrictions"
+	};
+};
+
+/**
+ * Item:42A
+ */
+var TypeOfServiceOnBridge = function() {
+	this.objectLength = 1;
+	this.name = "TYPE_OF_SERVICE_ON_BRIDGE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		1: "Highway",
+		2: "Railroad",
+		3: "Pedestrian-Bicycle",
+		4: "Highway-Railroad",
+		5: "Highway-Pedestrian",
+		6: "Overpass structure at an interchange",
+		7: "Third level (Interchange)",
+		8: "Fourth level (Interchange)",
+		9: "Building or plaza",
+		0: "Other",
+	};
+};
+
+/**
+ * Item:42B
+ */
+var TypeOfServiceUnderBridge = function() {
+	this.objectLength = 1;
+	this.name = "TYPE_OF_SERVICE_UNDER_BRIDGE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		1: "Highway",
+		2: "Railroad",
+		3: "Pedestrian-Bicycle",
+		4: "Highway-Railroad",
+		5: "Waterway",
+		6: "Highway-Waterway",
+		7: "Railroad-Waterway",
+		8: "Highway-Waterway-Railroad",
+		9: "Relief for waterway",
+		0: "Other"
+	};
+};
+
+/**
+ * Item:43A
+ */
+var StructureMaterial = function() {
+	this.objectLength = 1;
+	this.name = "STRUCTURE_MATERIAL";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = maps.MATERIALS_MAP[+buffer];
+	};
+};
+
+/**
+ * Item:43B
+ */
+var StructureDesign = function() {
+	this.objectLength = 2;
+	this.name = "STRUCTURE_DESIGN";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = maps.DESIGN_TYPE_MAP[+buffer];
+	};
+};
+
+
+/**
+ * Item:44A
+ */
+var ApproachSpanMaterial = function() {
+	this.objectLength = 1;
+	this.name = "APPROACH_SPAN_MATERIAL";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = maps.MATERIALS_MAP[+buffer];
+	};
+};
+
+/**
+ * Item:44B
+ */
+var ApproachSpanDesign = function() {
+	this.objectLength = 2;
+	this.name = "APPROACH_SPAN_DESIGN";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = maps.DESIGN_TYPE_MAP[+buffer];
+	};
+};
+
+/**
+ * Item:45
+ * Number of spans in main unit
+ */
+var NumberOfSpans = function() {
+	this.objectLength = 3;
+	this.name = "NUMBER_OF_SPANS";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:46
+ * Number of approaching spans
+ */
+var NumberOfApproachingSpans = function() {
+	this.objectLength = 4;
+	this.name = "NUMBER_OF_APPROACHING_SPANS";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:47
+ */
+var HorizontalClearanceOfInventoryRoute = function() {
+	this.objectLength = 3;
+	this.name = "HORIZONTAL_CLEARANCE_OF_INVENTORY_ROUTE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:48
+ */
+var LengthOfMaximumSpan = function() {
+	this.objectLength = 5;
+	this.name = "LENGTH_OF_MAXIMUM_SPAN";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:49
+ */
+var StructureLength = function() {
+	this.objectLength = 6;
+	this.name = "STRUCTURE_LENGTH";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:50A
+ */
+var LeftCurbWidth = function() {
+	this.objectLength = 3;
+	this.name = "LEFT_CURB_WIDTH";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:50B
+ */
+var RightCurbWidth = function() {
+	this.objectLength = 3;
+	this.name = "RIGHT_CURB_WIDTH";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:51
+ */
+var BridgeRoadWidth = function() {
+	this.objectLength = 4;
+	this.name = "BRIDGE_ROAD_WIDTH";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:52
+ */
+var BridgeDeckWidth = function() {
+	this.objectLength = 4;
+	this.name = "BRIDGE_DECK_WIDTH";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:53
+ */
+var VerticalOverClearance = function() {
+	this.objectLength = 4;
+	this.name = "VERTICAL_OVER_CLEARANCE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+/**
+ * Item:54
+ */
+var VerticalUnderClearance = function() {
+	this.objectLength = 5;
+	this.name = "VERTICAL_UNDER_CLEARANCE";
+	this.parse = function(buffer, obj) {
+		var feat = buffer.charAt(0);
+		var clear = buffer.slice(1);
+		obj[this.name] = {
+			clearance:parseFloat(clear+'e-1'),
+			feature: maps.CLEARANCE_FEATURES[+feat]
+		};
+	};
+};
+
+/**
+ * Item:55
+ * The horizontal space between clearance feature and
+ * obstacle on right side.
+ */
+var RightLateralUnderClearance = function() {
+	this.objectLength = 4;
+	this.name = "RIGHT_LATERAL_UNDER_CLEARANCE";
+	this.parse = function(buffer, obj) {
+		var feat = buffer.charAt(0);
+		var clear = buffer.slice(1);
+		obj[this.name] = {
+			clearance:parseFloat(clear+'e-1'),
+			feature: maps.CLEARANCE_FEATURES[+feat]
+		};
+	};
+};
+
+/**
+ * Item:56
+ * The horizontal space between clearance feature and
+ * obstacle on left side.
+ * *Unlike Item 55, this gets no feature
+ */
+var LeftLateralUnderClearance = function() {
+	this.objectLength = 3;
+	this.name = "RIGHT_LATERAL_UNDER_CLEARANCE";
+	this.parse = function(buffer, obj) {
+		obj[this.name] = {
+			clearance:parseFloat(buffer+'e-1')
+		};
+	};
+};
+
+/**
+ * Item:58
+ */
+var DeckCondition = function() {
+	this.objectLength = 1;
+	this.name = "DECK_CONDITION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = maps.CONDITION_RATINGS[+buffer];
+	};
+}
+
+/**
+ * Item:59
+ */
+var SuperstructureCondition = function() {
+	this.objectLength = 1;
+	this.name = "SUPER_STRUCTURE_CONDITION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = maps.CONDITION_RATINGS[+buffer];
+	};
+}
+
+/**
+ * Item:60
+ */
+var SubstructureCondition = function() {
+	this.objectLength = 1;
+	this.name = "SUB_STRUCTURE_CONDITION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = maps.CONDITION_RATINGS[+buffer];
+	};
+}
+
+/**
+ * Item:61
+ */
+var ChannelProtectionCondition = function() {
+	this.objectLength = 1;
+	this.name = "CHANNEL_PROTECTION_CONDITION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+	this.Types = {
+		N: 'N/A',
+		9: 'No Deficiencies',
+		8: 'Protected or Well-Vegetated Banks',
+		7: 'Need Minor Repairs',
+		6: 'Bank Slump; Minor Damage',
+		5: 'Bank Eroding; Major Damage',
+		4: 'Bank Protection Underminded; Severe Damage',
+		3: 'Bank Protection Failed; Bridge Damage Threat',
+		2: 'Bridge Near Collapse',
+		1: 'Bridge Closed due to Channel; Action Necessary.',
+		0: 'Bridge Closed due to Channel; Replacement Necessary',
+	}
+}
+
+
+/**
+ * Item:62
+ */
+var CulvertCondition = function() {
+	this.objectLength = 1;
+	this.name = "CULVERT_CONDITION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+	this.Types = {
+		N: 'N/A',
+		9: 'No Deficiencies',
+		8: 'Insignificant Deficiencies',
+		7: 'Minor/Insignificant Damage; No Action Needed',
+		6: 'Deterioration or Initial Disintegration',
+		5: 'Moderate to Major Deterioration or Disintegration',
+		4: 'Large Spalls, Heavy Scaling, Wide Cracks',
+		3: 'Severe Large Spalls, Heavy Scaling, Wide Cracks',
+		2: 'Collapsed Integral Wingwalls, Severe Settlement of Roadway',
+		1: 'Bridge Closed; Action Necessary.',
+		0: 'Bridge Closed; Replacement Necessary',
+	}
+}
+
+/**
+ * Item:63
+ */
+var OperatingRatingMethod = function() {
+	this.objectLength = 1;
+	this.name = "OPERATIONAL_RATING_METHOD";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+	this.Types = {
+		1: "Load Factor",
+		2: "Allowable Stress",
+		3: "Load and Resistance Factor",
+		4: "Load Testing",
+		5: "No rating analysis performed",
+	}
+}
+
+
+/**
+ * Item:64
+ * Load Capacity in metric tons
+ */
+var OperatingRating = function() {
+	this.objectLength = 3;
+	this.name = "OPERATIONAL_RATING_METHOD";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+}
+
+/**
+ * Item:65
+ */
+var InventoryRatingMethod = function() {
+	this.objectLength = 1;
+	this.name = "INVENTORY_RATING_METHOD";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+	this.Types = {
+		1: "Load Factor",
+		2: "Allowable Stress",
+		3: "Load and Resistance Factor",
+		4: "Load Testing",
+		5: "No rating analysis performed",
+	}
+}
+
+/**
+ * Item:66
+ * Load Capacity in metric tons
+ */
+var InventoryRating = function() {
+	this.objectLength = 3;
+	this.name = "INVENTORY_RATING";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+}
+
+/**
+ * Item:67
+ */
+var StructuralEvaluation = function() {
+	this.objectLength = 1;
+	this.name = "STRUCTURAL_EVALUATION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = maps.CONDITION_COMPARISON_RATINGS[buffer];
+	};
+}
+
+/**
+ * Item:68
+ */
+var DeckGeometryEvaluation = function() {
+	this.objectLength = 1;
+	this.name = "DECK_GEOMETRY_EVALUATION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = maps.CONDITION_COMPARISON_RATINGS[buffer];
+	};
+}
+
+/**
+ * Item:69
+ */
+var UnderclearanceRating = function() {
+	this.objectLength = 1;
+	this.name = "UNDERCLEARANCE_RATING";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = +buffer;
+	};
+}
+
+/**
+ * Item:70
+ * ~% Relationship of Operating Rating to Maximum Legal Load
+ * Posting is necessary if Operating Rating < Maximum Legal
+ */
+var BridgePosting = function() {
+	this.objectLength = 1;
+	this.name = "BRIDGE_POSTING";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+	this.Types = {
+		5: ">=Legal Load",
+		4: "0.1 -  9.9% below Legal Load",
+		3: "10.0 -  19.9% below Legal Load",
+		2: "20.0 -  29.9% below Legal Load",
+		1: "30.0 -  39.9% below Legal Load",
+		0: ">39.9% below Legal Load",
+	};
+}
+
+/**
+ * Item:71
+ * Item:26 is needed to parse
+ * When duplicate codes, i go with the better condition
+ */
+var WaterwayCondition = function() {
+	this.objectLength = 1;
+	this.name = "BRIDGE_POSTING";
+	this.parse = function(buffer,obj,classObj) {
+		assert.equa
+		var invObj = new FunctionalClassificationofInventoryRoute();
+		var group = classObj.FUNCITONAL_CLASSIFICATION_OF_INVENTORY_ROUTE.group;
+
+		if(invObj.ClassificationGroups.PRINCIPAL ===
+			group) {
+			obj[this.name] = this.PrincipalMap[+buffer];
+		} else if(invObj.ClassificationGroups.NON_PRINCIPAL ===
+			group) {
+			obj[this.name] = this.NonPrincipalMap[+buffer];
+		} else if(invObj.ClassificationGroups.LOCAL ===
+			group) {
+			obj[this.name] = this.LocalMap[+buffer];
+		}
+		
+	};
+	this.CodeTypes = {
+		NA: "N/A",
+		REMOTE: "Remote Chance of overtopping",
+		SLIGHT: "Slight chance of overtopping bridge approaches",
+		SLIGHT_DECK: "Slight chance of overtopping bridge deck",
+		OCCASIONAL: "Occasional overtopping of roadway approaches",
+		OCCASIONAL_AFFECTS: "Occasional approach overtopping; affects traffic",
+		DECK_AFFECTS: "Occasional deck overtopping; affects traffic",
+		DECK_FREQUENT: "Frequent deck overtopping; affects traffic",
+		DECK_SEVERE: "Frequent deck overtopping; severe traffic",
+		NO_BRIDGE: "Bridge Closed",
+	};
+
+	this.PrincipalMap = {
+		N: this.CodeTypes.NA,
+		9: this.CodeTypes.REMOTE,
+		8: this.CodeTypes.SLIGHT,
+		6: this.CodeTypes.SLIGHT_DECK,
+		4: this.CodeTypes.OCCASIONAL,
+		3: this.CodeTypes.OCCASIONAL_AFFECTS,
+		2: this.CodeTypes.DECK_AFFECTS,
+		0: this.CodeTypes.NO_BRIDGE,
+	};
+
+	this.NonPrincipalMap = {
+		N: this.CodeTypes.NA,
+		9: this.CodeTypes.REMOTE,
+		8: this.CodeTypes.SLIGHT,
+		6: this.CodeTypes.SLIGHT_DECK,
+		5: this.CodeTypes.OCCASIONAL,
+		4: this.CodeTypes.OCCASIONAL_AFFECTS,
+		3: this.CodeTypes.DECK_AFFECTS,
+		2: this.CodeTypes.DECK_FREQUENT,
+		0: this.CodeTypes.NO_BRIDGE,
+	};
+
+	this.LocalMap = {
+		N: this.CodeTypes.NA,
+		9: this.CodeTypes.REMOTE,
+		8: this.CodeTypes.SLIGHT,
+		7: this.CodeTypes.SLIGHT_DECK,
+		6: this.CodeTypes.OCCASIONAL,
+		5: this.CodeTypes.OCCASIONAL_AFFECTS,
+		4: this.CodeTypes.DECK_AFFECTS,
+		3: this.CodeTypes.DECK_FREQUENT,
+		2: this.CodeTypes.DECK_SEVERE,
+		0: this.CodeTypes.NO_BRIDGE,
+	};
+}
+
+/**
+ * Item:72
+ * This is allll guesswork:
+ * Out of 9 it seems like
+ * >=8 is great
+ * 6 == some slow down
+ * <=3 intolerable slowdown
+ */
+var ApproachRoadwayAlignmentAdequacy = function() {
+	this.objectLength = 1;
+	this.name = "APPROACH_ROADWAY_ALIGNMENT_ADEQUACY";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:75A
+ * coded for bridges to be eligible for the Highway Bridge 
+ * Replacement and Rehabilitation Program
+ */
+var WorkProposed = function() {
+	this.objectLength = 2;
+	this.name = "WORK_PROPOSED";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		31: {
+			work: "Replacement",
+			reason: "load carrying capacity or geometry"
+		},
+		32: {
+			work: "Replacement",
+			reason: "road relocation"
+		},
+		33: {
+			work: "Widening",
+		},
+		34: {
+			work: "Widening and Deck Rehabilitation/Replacement",
+		},
+		35: {
+			work: "Rehabilitation",
+			reason: "Structure deterioration/lack of strength"
+		},
+		36: {
+			work: "Rehabilitation and Incidental Widening",
+		},
+		37: {
+			work: "Replacement and Incidental Widening",
+		},
+		38: {
+			work: "Other",
+		},
 	}
 };
 
+/**
+ * Item:75B
+ * coded for bridges to be eligible for the Highway Bridge 
+ * Replacement and Rehabilitation Program
+ */
+var WorkDoneBy = function() {
+	this.objectLength = 1;
+	this.name = "WORK_DONE_BY";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		1: "CONTRACT",
+		2: "OWNER"
+	};
+};
+
+/**
+ * Item:76
+ * coded for bridges to be eligible for the Highway Bridge 
+ * Replacement and Rehabilitation Program
+ */
+var WorkImprovementLength = function() {
+	this.objectLength = 6;
+	this.name = "WORK_IMPROVEMENT_LENGTH";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = parseFloat(buffer+'e-1');
+	};
+};
+
+function twoYearCodeToFourYearCode(code) {
+	var currYear = (new Date).getYear();
+	currYear = parseInt((currYear+"").slice(2),10);
+	return code>currYear?'19'+code:'20'+code
+}
+/**
+ * Item:90
+ * Year is encoded with 2 digits, so i'm taking the following liberty
+ * of of saying that data<=current year's 2 digits is the current decade(20), else
+ * last decade (19)
+ */
+var LastInspectionDate = function() {
+	this.objectLength = 4;
+	this.name = "LAST_INSPECTION_DATE";
+	this.parse = function(buffer,obj) {
+		var match = buffer.match(/(\d\d)(\d\d)/);
+
+		if(match) {
+			var year = parseInt(match[2],10);
+			obj[this.name] = {
+				month: parseInt(match[1],10),
+				year: twoYearCodeToFourYearCode(year)
+			};
+		} else {
+			obj[this.name] = undefined;
+		}
+	};
+};
+
+/**
+ * Item:91
+ * measured in months
+ */
+var InspectionFrequency = function() {
+	this.objectLength = 2;
+	this.name = "INSPECTION_FREQUENCY";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:92A
+ * measured in months
+ */
+var FractureInspection = function() {
+	this.objectLength = 3;
+	this.name = "FRACTURE_INSPECTION";
+	this.parse = function(buffer,obj) {
+		var isCritical = buffer.charAt(0)==='Y';
+		if(isCritical) {
+			obj[this.name] = {
+				isCritical: true,
+				frequency: parseInt(buffer.slice(1),10)
+			};
+		} else {
+			obj[this.name] = {
+				isCritical: false
+			};
+		}
+	};
+};
+
+/**
+ * Item:92B
+ * measured in months
+ */
+var UnderwaterInspection = function() {
+	this.objectLength = 3;
+	this.name = "UNDERWATER_INSPECTION";
+	this.parse = function(buffer,obj) {
+		var isCritical = buffer.charAt(0)==='Y';
+		if(isCritical) {
+			obj[this.name] = {
+				isCritical: true,
+				frequency: parseInt(buffer.slice(1),10)
+			};
+		} else {
+			obj[this.name] = {
+				isCritical: false
+			};
+		}
+	};
+};
+
+/**
+ * Item:92C
+ * measured in months
+ */
+var SpecialInspection = function() {
+	this.objectLength = 3;
+	this.name = "SPECIAL_INSPECTION";
+	this.parse = function(buffer,obj) {
+		var isCritical = buffer.charAt(0)==='Y';
+		if(isCritical) {
+			obj[this.name] = {
+				isCritical: true,
+				frequency: parseInt(buffer.slice(1),10)
+			};
+		} else {
+			obj[this.name] = {
+				isCritical: false
+			};
+		}
+	};
+};
+
+/**
+ * Item:93A
+ */
+var FractureInspectionDate = function() {
+	this.objectLength = 4;
+	this.name = "FRACTURE_INSPECTION_DATE";
+	this.parse = function(buffer,obj) {
+		var match = buffer.match(/(\d\d)(\d\d)/);
+
+		if(match) {
+			var year = parseInt(match[2],10);
+			obj[this.name] = {
+				month: parseInt(match[1],10),
+				year: twoYearCodeToFourYearCode(year)
+			};
+		} else {
+			obj[this.name] = undefined;
+		}
+	};
+};
+
+
+/**
+ * Item:93B
+ */
+var UnderwaterInspectionDate = function() {
+	this.objectLength = 4;
+	this.name = "UNDERWATER_INSPECTION_DATE";
+	this.parse = function(buffer,obj) {
+		var match = buffer.match(/(\d\d)(\d\d)/);
+
+		if(match) {
+			var year = parseInt(match[2],10);
+			obj[this.name] = {
+				month: parseInt(match[1],10),
+				year: twoYearCodeToFourYearCode(year)
+			};
+		} else {
+			obj[this.name] = undefined;
+		}
+	};
+};
+
+/**
+ * Item:93C
+ */
+var SpecialInspectionDate = function() {
+	this.objectLength = 4;
+	this.name = "SPECIAL_INSPECTION_DATE";
+	this.parse = function(buffer,obj) {
+		var match = buffer.match(/(\d\d)(\d\d)/);
+
+		if(match) {
+			var year = parseInt(match[2],10);
+			obj[this.name] = {
+				month: parseInt(match[1],10),
+				year: twoYearCodeToFourYearCode(year)
+			};
+		} else {
+			obj[this.name] = undefined;
+		}
+	};
+};
+
+/**
+ * Item:94
+ * Rounded to nearest thousand
+ */
+var BridgeImprovementCost = function() {
+	this.objectLength = 6;
+	this.name = "BRIDGE_IMPROVEMENT_COST";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  1000 * parseInt(buffer,10);
+	};
+};
+
+//end is exclusive
+var PARSE_MAP = [
+	{start:0,end:2,obj:new State()},
+	{start:2,end:3,obj: new Region()},
+	{start:3,end:18,obj: new StructureNumber()},
+	{start:18,end:19,obj: new RouteType()},
+	{start:19,end:20,obj: new RouteSigningPrefix()},
+	{start:20,end:21,obj: new RouteServiceLevel()},
+	{start:21,end:26,obj: new RouteNumber()},
+	{start:26,end:27,obj: new RouteDirection()},
+	{start:27,end:29,obj: new HighwayAgencyDistrict()},
+	{start:29,end:32,obj: new County()},
+	{start:32,end:37,obj: new Place()},
+	{start:37,end:61,obj: new IntersectingFeature()},
+	{start:62,end:80,obj: new CarriedStructure()},
+	{start:80,end:105,obj: new LocationDescription()},
+	{start:105,end:109,obj: new VerticalClearance()},
+	{start:109,end:116,obj: new BaseHighwayKilometerPoint()},
+	{start:116,end:117,obj: new IsOnBaseNetwork()},
+	{start:117,end:127,obj: new LRSInventoryRoute()},
+	{start:127,end:129,obj: new LRSInventorySubRoute()},
+	{start:129,end:137,obj: new Latitude()},
+	{start:137,end:146,obj: new Longitude()},
+	{start:146,end:149,obj: new DetourLength()},
+	{start:149,end:150,obj: new Toll()},
+	{start:150,end:152,obj: new MaintenanceResponsibility()},
+	{start:152,end:154,obj: new Owner()},
+	{start:154,end:156,obj: new FunctionalClassificationofInventoryRoute()},
+	{start:156,end:160,obj: new YearBuilt()},
+	{start:160,end:162,obj: new LanesOnStructure()},
+	{start:162,end:164,obj: new LanesUnderStructure()},
+	{start:164,end:170,obj: new AverageDailyTraffic()},
+	{start:170,end:174,obj: new YearOfAverageDailyTraffic()},
+	{start:174,end:175,obj: new DesignLoad()},
+	{start:175,end:179,obj: new ApproachRoadwayWidth()},
+	{start:179,end:180,obj: new BridgeMedianType()},
+	{start:180,end:182,obj: new Skew()},
+	{start:182,end:183,obj: new StructureFlared()},
+	{start:183,end:184,obj: new BridgeRailings()},
+	{start:184,end:185,obj: new Transitions()},
+	{start:185,end:186,obj: new ApproachGuardrail()},
+	{start:186,end:187,obj: new ApproachGuardrailEnds()},
+	{start:187,end:188,obj: new HistoricalSignificance()},
+	{start:188,end:189,obj: new NavigationControl()},
+	{start:189,end:193,obj: new NavigationVerticalClearance()},
+	{start:193,end:198,obj: new NavigationHorizontalClearance()},
+	{start:198,end:199,obj: new OperationalStatus()},
+	{start:199,end:200,obj: new TypeOfServiceOnBridge()},
+	{start:200,end:201,obj: new TypeOfServiceUnderBridge()},
+	{start:201,end:202,obj: new StructureMaterial()},
+	{start:202,end:204,obj: new StructureDesign()},
+	{start:204,end:205,obj: new ApproachSpanMaterial()},
+	{start:205,end:207,obj: new ApproachSpanDesign()},
+	{start:207,end:210,obj: new NumberOfSpans()},
+	{start:210,end:214,obj: new NumberOfApproachingSpans()},
+	{start:214,end:217,obj: new HorizontalClearanceOfInventoryRoute()},
+	{start:217,end:222,obj: new LengthOfMaximumSpan()},
+	{start:222,end:228,obj: new StructureLength()},
+	{start:228,end:231,obj: new LeftCurbWidth()},
+	{start:231,end:234,obj: new RightCurbWidth()},
+	{start:234,end:238,obj: new BridgeRoadWidth()},
+	{start:238,end:242,obj: new BridgeDeckWidth()},
+	{start:242,end:246,obj: new VerticalOverClearance()},
+	{start:246,end:251,obj: new VerticalUnderClearance()},
+	{start:251,end:255,obj: new RightLateralUnderClearance()},
+	{start:255,end:258,obj: new LeftLateralUnderClearance()},
+	{start:258,end:259,obj: new DeckCondition()},
+	{start:259,end:260,obj: new SuperstructureCondition()},
+	{start:260,end:261,obj: new SubstructureCondition()},
+	{start:261,end:262,obj: new ChannelProtectionCondition()},
+	{start:262,end:263,obj: new CulvertCondition()},
+	{start:263,end:264,obj: new OperatingRatingMethod()},
+	{start:264,end:267,obj: new OperatingRating()},
+	{start:267,end:268,obj: new InventoryRatingMethod()},
+	{start:268,end:271,obj: new InventoryRating()},
+	{start:271,end:272,obj: new StructuralEvaluation()},
+	{start:272,end:273,obj: new DeckGeometryEvaluation()},
+	{start:273,end:274,obj: new UnderclearanceRating()},
+	{start:274,end:275,obj: new BridgePosting()},
+	{start:275,end:276,obj: new WaterwayCondition()},
+	{start:276,end:277,obj: new ApproachRoadwayAlignmentAdequacy()},
+	{start:277,end:279,obj: new WorkProposed()},
+	{start:279,end:280,obj: new WorkDoneBy()},
+	{start:280,end:286,obj: new WorkImprovementLength()},
+	{start:286,end:290,obj: new LastInspectionDate()},
+	{start:290,end:292,obj: new InspectionFrequency()},
+	{start:292,end:295,obj: new FractureInspection()},
+	{start:295,end:298,obj: new UnderwaterInspection()},
+	{start:298,end:301,obj: new SpecialInspection()},
+	{start:301,end:305,obj: new FractureInspectionDate()},
+	{start:305,end:309,obj: new UnderwaterInspectionDate()},
+	{start:309,end:313,obj: new SpecialInspectionDate()},
+	{start:313,end:319,obj: new BridgeImprovementCost()},
+
+];
+
+exports.PARSE_MAP = PARSE_MAP;
 exports.State = new State();
 exports.Region = new Region();
 exports.HighwayAgencyDistrict = new HighwayAgencyDistrict();
@@ -438,6 +1837,45 @@ exports.BaseHighwayKilometerPoint = new BaseHighwayKilometerPoint();
 exports.IsOnBaseNetwork = new IsOnBaseNetwork();
 exports.LRSInventoryRoute = new LRSInventoryRoute();
 exports.LRSInventorySubRoute = new LRSInventorySubRoute();
+exports.Latitude = new Latitude();
+exports.Longitude = new Longitude();
+exports.DetourLength = new DetourLength();
+exports.Toll = new Toll();
+exports.MaintenanceResponsibility = new MaintenanceResponsibility();
+exports.Owner = new Owner();
+exports.FunctionalClassificationofInventoryRoute = new FunctionalClassificationofInventoryRoute();
+exports.YearBuilt = new YearBuilt();
+exports.LanesOnStructure = new LanesOnStructure();
+exports.LanesUnderStructure = new LanesUnderStructure();
+exports.AverageDailyTraffic = new AverageDailyTraffic();
+exports.YearOfAverageDailyTraffic = new YearOfAverageDailyTraffic();
+exports.DesignLoad = new DesignLoad();
+exports.ApproachRoadwayWidth = new ApproachRoadwayWidth();
+exports.BridgeMedianType = new BridgeMedianType();
+exports.Skew = new Skew();
+exports.StructureFlared = new StructureFlared();
+exports.BridgeRailings = new BridgeRailings();
+exports.Transitions = new Transitions();
+exports.ApproachGuardrail = new ApproachGuardrail();
+exports.ApproachGuardrailEnds = new ApproachGuardrailEnds();
+exports.HistoricalSignificance = new HistoricalSignificance();
+exports.NavigationControl = new NavigationControl();
+exports.NavigationVerticalClearance = new NavigationVerticalClearance();
+exports.NavigationHorizontalClearance = new NavigationHorizontalClearance();
+exports.OperationalStatus = new OperationalStatus();
+exports.TypeOfServiceOnBridge = new TypeOfServiceOnBridge();
+exports.TypeOfServiceUnderBridge = new TypeOfServiceUnderBridge();
+exports.StructureMaterial = new StructureMaterial();
+exports.StructureDesign = new StructureDesign();
+exports.ApproachSpanMaterial = new ApproachSpanMaterial();
+exports.ApproachSpanDesign = new ApproachSpanDesign();
+exports.NumberOfSpans = new NumberOfSpans();
+exports.NumberOfApproachingSpans = new NumberOfApproachingSpans();
+exports.HorizontalClearanceOfInventoryRoute = new HorizontalClearanceOfInventoryRoute();
+exports.LengthOfMaximumSpan = new LengthOfMaximumSpan();
+exports.StructureLength = new StructureLength();
+exports.LeftCurbWidth = new LeftCurbWidth();
+exports.RightCurbWidth = new RightCurbWidth();
 
 
 

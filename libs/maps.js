@@ -1,6 +1,6 @@
 
 
-exports.PLACE_ID_MAP = {
+exports.PLACE_ID_MAP= {
 	00100: "Abanda CDP",
 	00124: "Abbeville city",
 	00460: "Adamsville city",
@@ -41334,3 +41334,108 @@ exports.PLACE_ID_MAP = {
 	88121: "Yaurel comunidad"
 };
 
+exports.MAINTENANCE_RESPONSIBILITY_MAP = {
+	0: "N/A",
+	1: "State Highway Agency",
+	2: "County Highway Agency",
+	3: "Town Highway Agency",
+	4: "City Highway Agency",
+	11: "State Park, Forest, or Reservation Agency",
+	12: "Local Park, Forest, or Reservation Agency",
+	21: "Other State Agencies",
+	25: "Other Local Agencies",
+	26: "Private (other than railroad)",
+	27: "Railroad",
+	31: "State Toll Authority",
+	32: "Local Toll Authority",
+	60: "Other Federal Agencies",
+	61: "Indian Tribal Government",
+	62: "Bureau of Indian Affairs",
+	63: "Bureau of Fish and Wildlife",
+	64: "U.S. Forest Service",
+	66: "National Park Service",
+	67: "Tennessee Valley Authority",
+	68: "Bureau of Land Management",
+	69: "Bureau of Reclamation",
+	70: "Corps of Engineers (Civil)",
+	71: "Corps of Engineers (Military)",
+	72: "Air Force",
+	73: "Navy/Marines",
+	74: "Army",
+	75: "NASA",
+	76: "Metropolitan Washington Airports Service",
+	80: "N/A",
+};
+
+exports.MATERIALS_MAP = {
+	1: "Concrete",
+	2: "Concrete continuous",
+	3: "Steel",
+	4: "Steel continuous",
+	5: "Prestressed concrete",
+	6: "Prestressed concrete continuous",
+	7: "Wood or Timber",
+	8: "Masonry",
+	9: "Aluminum, Wrought Iron, or Cast Iron",
+	0: "Other",
+};
+
+exports.DESIGN_TYPE_MAP = {
+	1: "Slab",
+	2: "Stringer/Multi-beam or Girder",
+	3: "Girder and Floorbeam System",
+	4: "Tee Beam",
+	5: "Box Beam or Girders - Multiple",
+	6: "Box Beam or Girders - Single or Spread",
+	7: "Frame (except frame culverts)",
+	8: "Orthotropic",
+	9: "Truss - Deck",
+	10: "Truss - Thru",
+	11: "Arch - Deck",
+	12: "Arch - Thru",
+	13: "Suspension",
+	14: "Stayed Girder",
+	15: "Movable - Lift",
+	16: "Movable - Bascule",
+	17: "Movable - Swing",
+	18: "Tunnel",
+	19: "Culvert (includes frame culverts)",
+	20: "Mixed types",
+	21: "Segmental Box Girder",
+	22: "Channel Beam",
+	0: "Other",
+};
+
+exports.CLEARANCE_FEATURES = {
+	'H': 'Highway',
+	'R': 'Railroad',
+	'N': 'N/A'
+};
+
+exports.CONDITION_RATINGS = {
+	N: "NOT APPLICABLE",
+	9: "EXCELLENT CONDITION",
+	8: "VERY GOOD CONDITION",
+	7: "GOOD CONDITION",
+	6: "SATISFACTORY CONDITION",
+	5: "FAIR CONDITION",
+	4: "POOR CONDITION",
+	3: "SERIOUS CONDITION",
+	2: "CRITICAL CONDITION",
+	1: "IMMINENT FAILURE CONDITION",
+	0: "FAILED CONDITION",
+};
+
+exports.CONDITION_COMPARISON_RATINGS = {
+	N: "N/A",
+	9: "Superior to present desirable criteria",
+	8: "Equal to present desirable criteria",
+	7: "Better than present minimum criteria",
+	6: "Equal to present minimum criteria",
+	5: "Somewhat better than minimum adequacy to be left",
+	4: "Meets minimum tolerable limits to be left",
+	3: "Basically intolerable; requires high priority action",
+	2: "Basically intolerable; requires high priority replacement",
+	1: "This value of rating code not used",
+	0: "Bridge closed",
+};
