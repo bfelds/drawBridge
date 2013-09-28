@@ -1,12 +1,6 @@
 var objects = require('./objects.js');
 var assert = require('assert');
 
-var UNUSED = function(num){
-	this.objectLength=num;
-	this.name="BLAH";
-	this.parse = function(buffer,obj) {};	
-};
-
 var BridgeParse = function()
 {
 	//characters to be parsed

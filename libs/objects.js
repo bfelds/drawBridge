@@ -1721,6 +1721,467 @@ var BridgeImprovementCost = function() {
 	};
 };
 
+/**
+ * Item:95
+ * Rounded to nearest thousand
+ */
+var RoadwayImprovementCost = function() {
+	this.objectLength = 6;
+	this.name = "ROADWAY_IMPROVEMENT_COST";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  1000 * parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:96
+ * Rounded to nearest thousand
+ */
+var TotalImprovementCost = function() {
+	this.objectLength = 6;
+	this.name = "TOTAL_IMPROVEMENT_COST";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  1000 * parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:97
+ */
+var YearOfImprovementCost = function() {
+	this.objectLength = 4;
+	this.name = "YEAR_OF_IMPROVEMENT_COST";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:98A
+ * State Part
+ * Utilizes State code
+ */
+var NeighboringState = function() {
+	this.objectLength = 2;
+	this.name = "NEIGHBORING_STATE";
+	this.parse = function(buffer,obj) {
+		var temp = {};
+		var aState = new State();
+		aState.parse(buffer,temp);
+		obj[this.name] =  temp.STATE;
+	};
+};
+
+/**
+ * Item:98A
+ * Region Part
+ * Utilizes Region code
+ */
+var NeighboringRegion = function() {
+	this.objectLength = 1;
+	this.name = "NEIGHBORING_REGION";
+	this.parse = function(buffer,obj) {
+		var temp = {};
+		var aRegion = new Region();
+		aRegion.parse(buffer,temp);
+		obj[this.name] =  temp.REGION;
+	};
+};
+
+/**
+ * Item:98B
+ * Decimal representing percent responsibility
+ */
+var NeighboringResponsibility = function() {
+	this.objectLength = 2;
+	this.name = "NEIGHBORING_RESPONSIBILITY";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  .01 * parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:99
+ * Utilizes StructureNumber code
+ */
+var NeighboringStructureNumber = function() {
+	this.objectLength = 15;
+	this.name = "NEIGHBORING_STRUCTURE_NUMBER";
+	this.parse = function(buffer,obj) {
+		var temp = {};
+		var aStructureNumber = new StructureNumber();
+		aStructureNumber.parse(buffer,temp);
+		obj[this.name] =  temp.STRUCTURE_NUMBER;
+	};
+};
+
+/**
+ * Item:100
+ */
+var STRAHNETDesignation = function() {
+	this.objectLength = 1;
+	this.name = "STRAHNET_DESIGNATION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		0: "N/A",
+		1: "Interstate",
+		2: "Non-Interstate",
+		3: "Connector"
+	};
+};
+
+/**
+ * Item:101
+ */
+var ParallelStructure = function() {
+	this.objectLength = 1;
+	this.name = "PARALLEL_STRUCTURE";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		N: "N/A",
+		R: "RIGHT",
+		L: "LEFT"
+	};
+};
+
+/**
+ * Item:102
+ */
+var TrafficDirection = function() {
+	this.objectLength = 1;
+	this.name = "TRAFFIC_DIRECTION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		0: "N/A",
+		1: "ONE_WAY",
+		2: "TWO_WAY",
+		3: "TWO_WAY.ONE_LANE"
+	};
+};
+
+/**
+ * Item:103
+ */
+var HasTemporaryStructure = function() {
+	this.objectLength = 1;
+	this.name = "HAS_TEMPORARY_STRUCTURE";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  buffer==='T';
+	};
+};
+
+/**
+ * Item:104
+ */
+var OnNationalHighwaySystem = function() {
+	this.objectLength = 1;
+	this.name = "ON_NATIONAL_HIGHWAY_SYSTEM";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  buffer==='1';
+	};
+};
+
+/**
+ * Item:105
+ */
+var FederalLandsDesignation = function() {
+	this.objectLength = 1;
+	this.name = "FEDERAL_LANDS_DESIGNATION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+
+	this.Systems = {
+		NA: "N/A",
+		IRR: "Indian Reservation Road",
+		FH: "Forest Highway",
+		LMHS: "Land Management Highway System",
+	};
+	
+	this.Types = {
+		0: [this.Systems.NA],
+		1: [this.Systems.IRR],
+		2: [this.Systems.FH],
+		3: [this.Systems.LMHS],
+		4: [this.Systems.IRR,this.Systems.FH],
+		5: [this.Systems.IRR,this.Systems.LMHS],
+		6: [this.Systems.FH,this.Systems.LMHS],
+		9: [this.Systems.IRR, this.Systems.FH,this.Systems.LMHS]
+	};
+
+};
+
+/**
+ * Item:106
+ */
+var ReconstructionYear = function() {
+	this.objectLength = 4;
+	this.name = "RECONSTRUCTION_YEAR";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:107
+ */
+var DeckStructureType = function() {
+	this.objectLength = 1;
+	this.name = "DECK_STRUCTURE_TYPE";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		N: "N/A",
+		1: "Concrete Cast-in-Place",
+		2: "Concrete Precast Panels",
+		3: "Open Grating",
+		4: "Closed Grating",
+		5: "Steel Plate",
+		6: "Corrugated Steel",
+		7: "Aluminum",
+		8: "Wood or Timber",
+		9: "Other",
+	};
+};
+
+/**
+ * Item:108A
+ */
+var WearingSurfaceType = function() {
+	this.objectLength = 1;
+	this.name = "WEARING_SURFACE_TYPE";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		N: "N/A",
+		0: "None",
+		1: "Monolithic Concrete",
+		2: "Integral Concrete",
+		3: "Latex Concrete",
+		4: "Low Slump Concrete",
+		5: "Epoxy Overlay",
+		6: "Bituminous",
+		7: "Wood or Timber",
+		8: "Gravel",
+		9: "Other",
+	};
+};
+
+/**
+ * Item:108B
+ */
+var MembraneType = function() {
+	this.objectLength = 1;
+	this.name = "MEMBRANE_TYPE";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		N: "N/A",
+		0: "None",
+		1: "Built-up",
+		2: "Preformed Fabric",
+		3: "Epoxy",
+		8: "Unknown",
+		9: "Other",
+	};
+};
+
+/**
+ * Item:108C
+ */
+var DeckProtectionType = function() {
+	this.objectLength = 1;
+	this.name = "DECK_PROTECTION_TYPE";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		N: "N/A",
+		0: "None",
+		1: "Epoxy Coated Reinforcing",
+		2: "Galvanized Reinforcing",
+		3: "Other Coated Reinforcing",
+		4: "Cathodic Protection",
+		6: "Polymer Impregnated",
+		7: "Internally Sealed",
+		8: "Unknown",
+		9: "Other",
+	};
+};
+
+/**
+ * Item:109
+ * decimal representing percentage
+ */
+var AverageDailyTruckTraffic = function() {
+	this.objectLength = 2;
+	this.name = "AVERAGE_DAILY_TRUCK_TRAFFIC";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = .01*parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:110
+ */
+var OnNationalTruckNetwork = function() {
+	this.objectLength = 1;
+	this.name = "ON_NATIONAL_TRUCK_NETWORK";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = buffer==="1";
+	};
+};
+
+/**
+ * Item:111
+ */
+var PierOrAbutmentProtection = function() {
+	this.objectLength = 1;
+	this.name = "PIER_OR_ABUTMENT_PROTECTION";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		1: "Not Required",
+		2: "In Place and Functioning",
+		3: "In Place but Deteriorating",
+		4: "In Place but Reevaluation Suggested",
+		5: "None Present but Reevaluation Suggested"
+	};
+};
+
+/**
+ * Item:112
+ */
+var ExceedsNBISBridgeLength = function() {
+	this.objectLength = 1;
+	this.name = "EXCEEDS_NBIS_BRIDGE_LENGTH";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = buffer==="Y";
+	};
+};
+
+/**
+ * Item:113
+ */
+var ScourVulnurability = function() {
+	this.objectLength = 1;
+	this.name = "SCOUR_VULNURABILITY";
+	this.parse = function(buffer,obj) {
+		obj[this.name] =  this.Types[+buffer];
+	};
+
+	this.Types = {
+		N: "N/A", //not over waterway
+		U: "Unknown; not evaluated",
+		T: "Over Tidal Water; not evaluated",
+		9: "Foundation on dry land",
+		8: "Stable for calculated scour conditions",
+		7: "Not Scour Critical; Countermeasures In Place",
+		6: "Not Evaluated",
+		5: "Stable",
+		4: "Stable; Protective Action Needed",
+		3: "Scour Critical",
+		2: "Scour Critical; Immediate Action Needed",
+		1: "Scour Critical; Failure Imminent",
+		0: "Bridge Failure; Closed"		
+	};
+};
+
+/**
+ * Item:114
+ */
+var FutureAverageDailyTraffic = function() {
+	this.objectLength = 6;
+	this.name = "FUTURE_AVERAGE_DAILY_TRAFFIC";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:115
+ */
+var FutureAverageDailyTrafficYear = function() {
+	this.objectLength = 4;
+	this.name = "FUTURE_AVERAGE_DAILY_TRAFFIC_YEAR";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:116
+ */
+var VerticalClearanceOfLiftBridge = function() {
+	this.objectLength = 4;
+	this.name = "VERTICAL_CLEARANCE_OF_LIFT_BRIDGE";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = .01*parseInt(buffer,10);
+	};
+};
+
+/**
+ * Item:NA
+ * Status
+ */
+var Status = function() {
+	this.objectLength = 1;
+	this.name = "STATUS";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = this.Types[+buffer];
+	};
+
+	this.Types = {
+		N: "N/A",
+		0: "Not Deficient",
+		1: "Structurally Deficient",
+		2: "Functionally Obsolete"
+	};
+};
+
+/**
+ * Item:NA
+ * Defined in Appendix B
+ * Sufficiency Rating Formula was generated off of
+ * incomplete data
+ */
+var SufficiencyRatingAsterisk = function() {
+	this.objectLength = 1;
+	this.name = "SUFFICIENCY_RATING_ASTERISK";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = buffer;
+	};
+};
+
+/**
+ * Item:NA
+ */
+var SufficiencyRating = function() {
+	this.objectLength = 4;
+	this.name = "SUFFICIENCY_RATING";
+	this.parse = function(buffer,obj) {
+		obj[this.name] = .001*parseInt(buffer,10);
+	};
+};
 //end is exclusive
 var PARSE_MAP = [
 	{start:0,end:2,obj:new State()},
@@ -1814,6 +2275,35 @@ var PARSE_MAP = [
 	{start:305,end:309,obj: new UnderwaterInspectionDate()},
 	{start:309,end:313,obj: new SpecialInspectionDate()},
 	{start:313,end:319,obj: new BridgeImprovementCost()},
+	{start:319,end:325,obj: new RoadwayImprovementCost()},
+	{start:325,end:331,obj: new TotalImprovementCost()},
+	{start:331,end:335,obj: new YearOfImprovementCost()},
+	{start:335,end:337,obj: new NeighboringState()},
+	{start:337,end:338,obj: new NeighboringRegion()},
+	{start:338,end:340,obj: new NeighboringResponsibility()},
+	{start:340,end:355,obj: new NeighboringStructureNumber()},
+	{start:355,end:356,obj: new STRAHNETDesignation()},
+	{start:356,end:357,obj: new ParallelStructure()},
+	{start:357,end:358,obj: new TrafficDirection()},
+	{start:358,end:359,obj: new HasTemporaryStructure()},
+	{start:359,end:360,obj: new OnNationalHighwaySystem()},
+	{start:360,end:361,obj: new FederalLandsDesignation()},
+	{start:361,end:365,obj: new ReconstructionYear()},
+	{start:365,end:366,obj: new DeckStructureType()},
+	{start:366,end:367,obj: new WearingSurfaceType()},
+	{start:367,end:368,obj: new MembraneType()},
+	{start:368,end:369,obj: new DeckProtectionType()},
+	{start:369,end:371,obj: new AverageDailyTruckTraffic()},
+	{start:371,end:372,obj: new OnNationalTruckNetwork()},
+	{start:372,end:373,obj: new PierOrAbutmentProtection()},
+	{start:373,end:374,obj: new ExceedsNBISBridgeLength()},
+	{start:374,end:375,obj: new ScourVulnurability()},
+	{start:375,end:381,obj: new FutureAverageDailyTraffic()},
+	{start:381,end:385,obj: new FutureAverageDailyTrafficYear()},
+	{start:385,end:389,obj: new VerticalClearanceOfLiftBridge()},
+	{start:426,end:427,obj: new Status()},
+	{start:427,end:428,obj: new SufficiencyRatingAsterisk()},
+	{start:428,end:432,obj: new SufficiencyRating()},
 
 ];
 

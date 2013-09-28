@@ -42,7 +42,7 @@ function DataProcessor()
 
 	var chopper = function(state) {
 		var length = state.objectSize;
-		var buf=new Buffer(length);
+		var buf=new Buffer(length,'utf8');
 		fs.read(fd,buf,0,length,null,function(err,bytesRead,buffer){
 			parseCallOut(err,bytesRead,buffer,state);
 		}.bind(this));
@@ -66,7 +66,7 @@ function main()
 {
 	var dataProcessor = new DataProcessor();
 	dataProcessor.parse(DATA_LOC+'MI12.txt',function(output){
-		console.log('All Done: ' , output);
+		// console.log('All DataProcessorone: ' , output);
 	});
 }
 
