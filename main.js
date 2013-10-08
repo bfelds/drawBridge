@@ -1,73 +1,89 @@
+var agent = require('webkit-devtools-agent');
 var fs = require('fs');
+var Readable = require('stream').Readable;
+var Transform = require('stream').Transform;
+var util = require('util');
 var parser = require('./libs/parse.js');
+var program = require('commander');
+
 
 var DATA_LOC='./data/';
+var VERSION ='0.0.1'
 
-
-function openSampleData(file,callback)
+function createWriteStream(file)
 {
-	fs.open(file,'r',function(err,fileHandle){
-		if(err) {
-			throw err;
-		}
-		callback(fileHandle);
+	return fs.createWriteStream(file,{
+		flags:'w',encoding:'utf8'
 	});
-
 }
 
+function createReadStream(file) {
+	return fs.createReadStream(file,{
+		flags:'r',encoding:'utf8'
+	});
+}
+
+function hrdiff(t1, t2) {
+    var s = t2[0] - t1[0];
+    var mms = t2[1] - t1[1];
+    return s*1e9 + mms;
+}
+
+util.inherits(DataProcessor, Transform);
 function DataProcessor()
 {
-	var fd;
+	Transform.call(this);
 
-	var parseCallOut = function (err,bytesRead,buffer,state) {
-		if(err) {
-			throw err;
+	var data="";
+	this._transform = function(chunk,encoding,done) {
+		data += chunk.toString('utf8');
+		var str='';
+		while(data.length>=parser.BridgeParse.objectLength) {
+			var bit = data.slice(0,parser.BridgeParse.objectLength);
+			//1+ to burn /n
+			data = data.slice(1+parser.BridgeParse.objectLength);
+			var obj = parser.BridgeParse.parse(bit);
+			str += JSON.stringify(obj)+'\n';
 		}
-		if(bytesRead!=state.objectSize) {
-			console.log('bytesRead: ',bytesRead);
-			
-			state.callback(state.results);
-			fs.close(fd);
-			fd=undefined;
-			return;
+		this.push(str);
+		// console.log(str.length);
+		if(data.length<parser.BridgeParse.objectLength) {
+			done();
 		}
-		// console.log('bytesRead: ',bytesRead);
-		// console.log('fullBuffer: ', buffer.toString());
-		var obj = parser.BridgeParse.parse(buffer);
-		state.results.push(obj);
-		chopper(state);
-		// state.callback(state.results);
-		
+	};
+	this.printTime = function() {
 	};
 
-	var chopper = function(state) {
-		var length = state.objectSize;
-		var buf=new Buffer(length,'utf8');
-		fs.read(fd,buf,0,length,null,function(err,bytesRead,buffer){
-			parseCallOut(err,bytesRead,buffer,state);
-		}.bind(this));
-	};
-	this.parse = function(file,callback) {
-		var state = {
-			callback: callback,
-			objectSize: parser.BridgeParse.objectLength+1, //+1 for newline character
-			results:[],
-		}
-		openSampleData(file,function(fileHandle){
-			fd=fileHandle;
-			chopper(state);
-		});
-	};
-	return this;
 }
 
+function setUpCommandLineArgs()
+{
+	program
+		.version(VERSION)
+		.option('-i, --input [file]','input file')
+		.option('-o, --output <file>','output file')
+		.parse(process.argv);
+
+}
 
 function main()
 {
+	console.log('[%s] Running', process.pid);
+	setUpCommandLineArgs();
+	var outputStream = process.stdout;
+	var inputStream = process.stdin;
+	if(program.input) {
+		inputStream = createReadStream(program.input);
+	}
+	if(program.output) {
+		outputStream = createWriteStream(program.output);
+	}
 	var dataProcessor = new DataProcessor();
-	dataProcessor.parse(DATA_LOC+'MI12.txt',function(output){
-		// console.log('All DataProcessorone: ' , output);
+	inputStream.pipe(dataProcessor).pipe(outputStream);
+	inputStream.on('end',function(){
+		// dataProcessor.printTime();
 	});
 }
 
 main();
+

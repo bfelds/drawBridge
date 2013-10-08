@@ -17,13 +17,13 @@ var State = function() {
 		obj[this.name] = this.Types[+buffer];
 	};
 	this.Types = {
-		01: "Alabama",
-		02: "Alaska",
-		04: "Arizona",
-		05: "Arkansas",
-		06: "California",
-		08: "Colorado",
-		09: "Connecticut",
+		1: "Alabama",
+		2: "Alaska",
+		4: "Arizona",
+		5: "Arkansas",
+		6: "California",
+		8: "Colorado",
+		9: "Connecticut",
 		10: "Delaware",
 		11: "District_of_Columbia",
 		12: "Florida",
@@ -394,7 +394,7 @@ var BaseHighwayKilometerPoint = function() {
 
 /**
  * Item:12
- * indicate whether the inventory route is on the Base 
+ * indicate whether the inventory route is on the Base
  * Highway Network or not
  */
 var IsOnBaseNetwork = function() {
@@ -407,7 +407,7 @@ var IsOnBaseNetwork = function() {
 
 /**
  * Item:13A
- * inventory route for the State's linear 
+ * inventory route for the State's linear
  * referencing system (LRS)
  */
 var LRSInventoryRoute = function() {
@@ -422,7 +422,7 @@ var LRSInventoryRoute = function() {
 
 /**
  * Item:13B
- * Inventory subroute for the State's linear 
+ * Inventory subroute for the State's linear
  * referencing system (LRS)
  */
 var LRSInventorySubRoute = function() {
@@ -518,7 +518,7 @@ var Toll = function() {
 
 /**
  * Item:21
- * The actual name(s) of the agency(s) responsible 
+ * The actual name(s) of the agency(s) responsible
  * for the maintenance of the structure
  */
 var MaintenanceResponsibility = function() {
@@ -734,7 +734,7 @@ var BridgeMedianType = function() {
 
 /**
  * Item:34
- * the angle between the centerline of a pier 
+ * the angle between the centerline of a pier
  * and a line normal to the roadway centerline.
  */
 var Skew = function() {
@@ -747,7 +747,7 @@ var Skew = function() {
 
 /**
  * Item:35
- * Indicate if the structure is flared 
+ * Indicate if the structure is flared
  * (i.e., the width of the structure varies).
  */
 var StructureFlared = function() {
@@ -816,7 +816,7 @@ var ApproachGuardrail = function() {
 
 /**
  * Item:36D
- * the ends of approach guardrails to bridges 
+ * the ends of approach guardrails to bridges
  * should be flared, buried, made breakaway, or shielded.
  */
 var ApproachGuardrailEnds = function() {
@@ -838,7 +838,7 @@ var ApproachGuardrailEnds = function() {
  * Types:
  * 1 Bridge is on the National Register of Historic Places.
  * 2 Bridge is eligible for the National Register of Historic Places.
- * 3 Bridge is possibly eligible for the National Register of Historic Places (requires further 
+ * 3 Bridge is possibly eligible for the National Register of Historic Places (requires further
  * investigation before determination can be made) or  bridge is on a State or local historic register.
  * 4 Historical significance is not determinable at this time.
  * 5 Bridge is not eligible for the National Register of Historic Places.
@@ -1382,7 +1382,6 @@ var WaterwayCondition = function() {
 	this.objectLength = 1;
 	this.name = "BRIDGE_POSTING";
 	this.parse = function(buffer,obj,classObj) {
-		assert.equa
 		var invObj = new FunctionalClassificationofInventoryRoute();
 		var group = classObj.FUNCITONAL_CLASSIFICATION_OF_INVENTORY_ROUTE.group;
 
@@ -1396,7 +1395,7 @@ var WaterwayCondition = function() {
 			group) {
 			obj[this.name] = this.LocalMap[+buffer];
 		}
-		
+
 	};
 	this.CodeTypes = {
 		NA: "N/A",
@@ -1466,7 +1465,7 @@ var ApproachRoadwayAlignmentAdequacy = function() {
 
 /**
  * Item:75A
- * coded for bridges to be eligible for the Highway Bridge 
+ * coded for bridges to be eligible for the Highway Bridge
  * Replacement and Rehabilitation Program
  */
 var WorkProposed = function() {
@@ -1509,7 +1508,7 @@ var WorkProposed = function() {
 
 /**
  * Item:75B
- * coded for bridges to be eligible for the Highway Bridge 
+ * coded for bridges to be eligible for the Highway Bridge
  * Replacement and Rehabilitation Program
  */
 var WorkDoneBy = function() {
@@ -1527,7 +1526,7 @@ var WorkDoneBy = function() {
 
 /**
  * Item:76
- * coded for bridges to be eligible for the Highway Bridge 
+ * coded for bridges to be eligible for the Highway Bridge
  * Replacement and Rehabilitation Program
  */
 var WorkImprovementLength = function() {
@@ -1907,7 +1906,7 @@ var FederalLandsDesignation = function() {
 		FH: "Forest Highway",
 		LMHS: "Land Management Highway System",
 	};
-	
+
 	this.Types = {
 		0: [this.Systems.NA],
 		1: [this.Systems.IRR],
@@ -2102,7 +2101,7 @@ var ScourVulnurability = function() {
 		3: "Scour Critical",
 		2: "Scour Critical; Immediate Action Needed",
 		1: "Scour Critical; Failure Imminent",
-		0: "Bridge Failure; Closed"		
+		0: "Bridge Failure; Closed"
 	};
 };
 
@@ -2308,64 +2307,3 @@ var PARSE_MAP = [
 ];
 
 exports.PARSE_MAP = PARSE_MAP;
-exports.State = new State();
-exports.Region = new Region();
-exports.HighwayAgencyDistrict = new HighwayAgencyDistrict();
-exports.County = new County();
-exports.Place = new Place();
-exports.RouteType = new RouteType();
-exports.RouteSigningPrefix = new RouteSigningPrefix();
-exports.RouteServiceLevel = new RouteServiceLevel();
-exports.RouteNumber = new RouteNumber();
-exports.RouteDirection = new RouteDirection();
-exports.IntersectingFeature = new IntersectingFeature();
-exports.CarriedStructure = new CarriedStructure();
-exports.StructureNumber = new StructureNumber();
-exports.LocationDescription = new LocationDescription();
-exports.VerticalClearance = new VerticalClearance();
-exports.BaseHighwayKilometerPoint = new BaseHighwayKilometerPoint();
-exports.IsOnBaseNetwork = new IsOnBaseNetwork();
-exports.LRSInventoryRoute = new LRSInventoryRoute();
-exports.LRSInventorySubRoute = new LRSInventorySubRoute();
-exports.Latitude = new Latitude();
-exports.Longitude = new Longitude();
-exports.DetourLength = new DetourLength();
-exports.Toll = new Toll();
-exports.MaintenanceResponsibility = new MaintenanceResponsibility();
-exports.Owner = new Owner();
-exports.FunctionalClassificationofInventoryRoute = new FunctionalClassificationofInventoryRoute();
-exports.YearBuilt = new YearBuilt();
-exports.LanesOnStructure = new LanesOnStructure();
-exports.LanesUnderStructure = new LanesUnderStructure();
-exports.AverageDailyTraffic = new AverageDailyTraffic();
-exports.YearOfAverageDailyTraffic = new YearOfAverageDailyTraffic();
-exports.DesignLoad = new DesignLoad();
-exports.ApproachRoadwayWidth = new ApproachRoadwayWidth();
-exports.BridgeMedianType = new BridgeMedianType();
-exports.Skew = new Skew();
-exports.StructureFlared = new StructureFlared();
-exports.BridgeRailings = new BridgeRailings();
-exports.Transitions = new Transitions();
-exports.ApproachGuardrail = new ApproachGuardrail();
-exports.ApproachGuardrailEnds = new ApproachGuardrailEnds();
-exports.HistoricalSignificance = new HistoricalSignificance();
-exports.NavigationControl = new NavigationControl();
-exports.NavigationVerticalClearance = new NavigationVerticalClearance();
-exports.NavigationHorizontalClearance = new NavigationHorizontalClearance();
-exports.OperationalStatus = new OperationalStatus();
-exports.TypeOfServiceOnBridge = new TypeOfServiceOnBridge();
-exports.TypeOfServiceUnderBridge = new TypeOfServiceUnderBridge();
-exports.StructureMaterial = new StructureMaterial();
-exports.StructureDesign = new StructureDesign();
-exports.ApproachSpanMaterial = new ApproachSpanMaterial();
-exports.ApproachSpanDesign = new ApproachSpanDesign();
-exports.NumberOfSpans = new NumberOfSpans();
-exports.NumberOfApproachingSpans = new NumberOfApproachingSpans();
-exports.HorizontalClearanceOfInventoryRoute = new HorizontalClearanceOfInventoryRoute();
-exports.LengthOfMaximumSpan = new LengthOfMaximumSpan();
-exports.StructureLength = new StructureLength();
-exports.LeftCurbWidth = new LeftCurbWidth();
-exports.RightCurbWidth = new RightCurbWidth();
-
-
-
