@@ -63,7 +63,7 @@ function setUpCommandLineArgs()
 		.version(VERSION)
 		.option('-i, --input [file]','input file')
 		.option('-o, --output <file>','output file')
-		.option('-c, --CSV ','output in csv format')
+		.option('-c, --CSV ','output in csv format "|" delimited')
 		.option('-r, --raw ','output in raw format')
 		.parse(process.argv);
 

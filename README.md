@@ -15,6 +15,8 @@ Usage: main.js [options]
     -V, --version        output the version number
     -i, --input [file]   input file
     -o, --output <file>  output file
+    -c, --CSV            output in csv format "|" delimited
+    -r, --raw            output in raw format
 
 
 file description
