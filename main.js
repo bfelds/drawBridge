@@ -1,10 +1,11 @@
-var agent = require('webkit-devtools-agent');
+// var agent = require('webkit-devtools-agent');
 var fs = require('fs');
 var Readable = require('stream').Readable;
 var Transform = require('stream').Transform;
 var util = require('util');
 var parser = require('./libs/parse.js');
 var program = require('commander');
+var csvStream = require('json2csv-stream');
 
 
 var DATA_LOC='./data/';
@@ -30,10 +31,10 @@ function hrdiff(t1, t2) {
 }
 
 util.inherits(DataProcessor, Transform);
-function DataProcessor()
+function DataProcessor(config)
 {
 	Transform.call(this);
-
+	var parseFunc = !config.isRaw?'parse':'raw'
 	var data="";
 	this._transform = function(chunk,encoding,done) {
 		data += chunk.toString('utf8');
@@ -42,7 +43,7 @@ function DataProcessor()
 			var bit = data.slice(0,parser.BridgeParse.objectLength);
 			//1+ to burn /n
 			data = data.slice(1+parser.BridgeParse.objectLength);
-			var obj = parser.BridgeParse.parse(bit);
+			var obj = parser.BridgeParse[parseFunc](bit);
 			str += JSON.stringify(obj)+'\n';
 		}
 		this.push(str);
@@ -62,6 +63,8 @@ function setUpCommandLineArgs()
 		.version(VERSION)
 		.option('-i, --input [file]','input file')
 		.option('-o, --output <file>','output file')
+		.option('-c, --CSV ','output in csv format')
+		.option('-r, --raw ','output in raw format')
 		.parse(process.argv);
 
 }
@@ -78,8 +81,14 @@ function main()
 	if(program.output) {
 		outputStream = createWriteStream(program.output);
 	}
-	var dataProcessor = new DataProcessor();
-	inputStream.pipe(dataProcessor).pipe(outputStream);
+	var dataProcessor = new DataProcessor({isRaw:program.raw});
+
+	if(program.CSV) {
+		var csv = new csvStream({del: '|'});
+		inputStream.pipe(dataProcessor).pipe(csv).pipe(outputStream);
+	} else {
+		inputStream.pipe(dataProcessor).pipe(outputStream);
+	}
 	inputStream.on('end',function(){
 		// dataProcessor.printTime();
 	});
