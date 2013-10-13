@@ -1,5 +1,6 @@
 var maps = require('./maps.js');
 var assert = require('assert');
+var _ = require('underscore');
 /**
  * Item:1
  * Federal Information Processing Standards (FIPS) code for States
@@ -19,6 +20,18 @@ var State = function() {
 
 };
 
+//same as parseInt, but returns null instead of NaN
+function readInt(str) {
+	var val = parseInt(str, 10);
+	return _.isNaN(val) ? null : val;
+};
+
+//same as parseFloat, but returns null instead of NaN
+function readFloat(str, exp) {
+	var val = parseFloat(str.trim() + exp);
+	return _.isNaN(val) ? null : val;
+};
+
 /**
  * Item:1B
  * FHWA region code
@@ -27,7 +40,7 @@ var Region = function() {
 	this.objectLength = 1;
 	this.name = "REGION";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = +buffer;
+		obj[this.name] = readInt(buffer);
 	};
 };
 
@@ -40,7 +53,7 @@ var HighwayAgencyDistrict = function() {
 	this.objectLength = 2;
 	this.name = "HIGHWAY_AGENCY_DISTRICT";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = +buffer;
+		obj[this.name] = readInt(buffer);
 	};
 };
 
@@ -53,8 +66,10 @@ var HighwayAgencyDistrict = function() {
 var County = function() {
 	this.objectLength = 3;
 	this.name = "COUNTY";
-	this.parse = function(buffer, obj) {
-		obj[this.name] = maps.COUNTY_ID_MAP[+buffer] || null;
+	this.parse = function(buffer, obj, classObj) {
+		var stateCode = maps.REVERSE_STATE_ID_MAP[classObj.STATE];
+		var code = stateCode + buffer;
+		obj[this.name] = maps.COUNTY_ID_MAP[code] || null;
 	};
 
 };
@@ -95,7 +110,7 @@ var RouteType = function() {
 		}
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		obj.ROUTE_TYPE = buffer;
 		obj.NUMBER_OF_ROUTES = buffer;
 	};
@@ -159,7 +174,7 @@ var RouteNumber = function() {
 	this.objectLength = 5;
 	this.name = "ROUTE_NUMBER";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = +buffer;
+		obj[this.name] = readInt(buffer);
 	}
 };
 
@@ -251,7 +266,7 @@ var BaseHighwayKilometerPoint = function() {
 	this.objectLength = 7;
 	this.name = "BASE_HIGHWAY_KILOMETER_POINT";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(+buffer.trim() + 'e-2');
+		obj[this.name] = readFloat(buffer, 'e-2');
 	}
 };
 
@@ -419,7 +434,7 @@ var FunctionalClassificationofInventoryRoute = function() {
 		obj.FUNCTIONAL_GROUP_OF_INVENTORY_ROUTE = type.group || null;
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		obj.FUNCTIONAL_TYPE_OF_INVENTORY_ROUTE = buffer;
 		obj.FUNCTIONAL_DESCRIPTION_OF_INVENTORY_ROUTE = buffer;
 		obj.FUNCTIONAL_GROUP_OF_INVENTORY_ROUTE = buffer;
@@ -564,7 +579,7 @@ var DesignLoad = function() {
 		obj.DESIGN_LOAD_ENGLISH = result.english || null;
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		obj.DESIGN_LOAD_METRIC = buffer;
 		obj.DESIGN_LOAD_ENGLISH = buffer;
 	};
@@ -617,7 +632,7 @@ var ApproachRoadwayWidth = function() {
 	this.objectLength = 4;
 	this.name = "APPROACH_ROADWAY_WIDTH";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -791,7 +806,7 @@ var NavigationVerticalClearance = function() {
 	this.objectLength = 4;
 	this.name = "NAVIGATION_VERTICAL_CLEARANCE";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -802,7 +817,7 @@ var NavigationHorizontalClearance = function() {
 	this.objectLength = 5;
 	this.name = "NAVIGATION_HORIZONTAL_CLEARANCE";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -952,7 +967,7 @@ var HorizontalClearanceOfInventoryRoute = function() {
 	this.objectLength = 3;
 	this.name = "HORIZONTAL_CLEARANCE_OF_INVENTORY_ROUTE";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -963,7 +978,7 @@ var LengthOfMaximumSpan = function() {
 	this.objectLength = 5;
 	this.name = "LENGTH_OF_MAXIMUM_SPAN";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -974,7 +989,7 @@ var StructureLength = function() {
 	this.objectLength = 6;
 	this.name = "STRUCTURE_LENGTH";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -985,7 +1000,7 @@ var LeftCurbWidth = function() {
 	this.objectLength = 3;
 	this.name = "LEFT_CURB_WIDTH";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -996,7 +1011,7 @@ var RightCurbWidth = function() {
 	this.objectLength = 3;
 	this.name = "RIGHT_CURB_WIDTH";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -1007,7 +1022,7 @@ var BridgeRoadWidth = function() {
 	this.objectLength = 4;
 	this.name = "BRIDGE_ROAD_WIDTH";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -1018,7 +1033,7 @@ var BridgeDeckWidth = function() {
 	this.objectLength = 4;
 	this.name = "BRIDGE_DECK_WIDTH";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -1029,7 +1044,7 @@ var VerticalOverClearance = function() {
 	this.objectLength = 4;
 	this.name = "VERTICAL_OVER_CLEARANCE";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -1042,11 +1057,11 @@ var VerticalUnderClearance = function() {
 	this.parse = function(buffer, obj) {
 		var feat = buffer.charAt(0);
 		var clear = buffer.slice(1);
-		obj.VERTICAL_UNDER_CLEARANCE = parseFloat(clear + 'e-1');
+		obj.VERTICAL_UNDER_CLEARANCE = readFloat(clear, 'e-1');
 		obj.VERTICAL_UNDER_FEATURE = maps.CLEARANCE_FEATURES[+feat] || null;
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		var feat = buffer.charAt(0);
 		var clear = buffer.slice(1);
 		obj.VERTICAL_UNDER_CLEARANCE = clear;
@@ -1065,11 +1080,11 @@ var RightLateralUnderClearance = function() {
 	this.parse = function(buffer, obj) {
 		var feat = buffer.charAt(0);
 		var clear = buffer.slice(1);
-		obj.RIGHT_LATERAL_UNDER_CLEARANCE = parseFloat(clear + 'e-1');
+		obj.RIGHT_LATERAL_UNDER_CLEARANCE = readFloat(clear, 'e-1');
 		obj.RIGHT_LATERAL_UNDER_FEATURE = maps.CLEARANCE_FEATURES[+feat] || null;
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		var feat = buffer.charAt(0);
 		var clear = buffer.slice(1);
 		obj.RIGHT_LATERAL_UNDER_CLEARANCE = clear;
@@ -1087,7 +1102,7 @@ var LeftLateralUnderClearance = function() {
 	this.objectLength = 3;
 	this.name = "LEFT_LATERAL_UNDER_CLEARANCE";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 };
 
@@ -1201,7 +1216,7 @@ var OperatingRating = function() {
 	this.objectLength = 3;
 	this.name = "OPERATIONAL_RATING_METHOD";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 }
 
@@ -1231,7 +1246,7 @@ var InventoryRating = function() {
 	this.objectLength = 3;
 	this.name = "INVENTORY_RATING";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer, 'e-1');
 	};
 }
 
@@ -1264,7 +1279,7 @@ var UnderclearanceRating = function() {
 	this.objectLength = 1;
 	this.name = "UNDERCLEARANCE_RATING";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = +buffer;
+		obj[this.name] = readInt(buffer);
 	};
 }
 
@@ -1299,7 +1314,7 @@ var WaterwayCondition = function() {
 	this.name = "BRIDGE_POSTING";
 	this.parse = function(buffer, obj, classObj) {
 		var invObj = new FunctionalClassificationofInventoryRoute();
-		var group = classObj.FUNCTIONAL_GROUP_OF_INVENTORY_ROUTE.group;
+		var group = classObj.FUNCTIONAL_GROUP_OF_INVENTORY_ROUTE;
 		obj[this.name] = null;
 
 		if (invObj.ClassificationGroups.PRINCIPAL ===
@@ -1394,7 +1409,7 @@ var WorkProposed = function() {
 		obj.WORK_PROPOSED_REASON = result.reason || null;
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		obj.WORK_PROPOSED = buffer;
 		obj.WORK_PROPOSED_REASON = buffer;
 	};
@@ -1457,7 +1472,7 @@ var WorkImprovementLength = function() {
 	this.objectLength = 6;
 	this.name = "WORK_IMPROVEMENT_LENGTH";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseFloat(buffer + 'e-1');
+		obj[this.name] = readFloat(buffer + 'e-1');
 	};
 };
 
@@ -1529,7 +1544,7 @@ var FractureInspection = function() {
 		}
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		obj.FRACTURE_INSPECTION_CRITICAL = buffer.charAt(0);
 		obj.FRACTURE_INSPECTION_FREQUENCY = buffer.slice(1);
 	};
@@ -1553,7 +1568,7 @@ var UnderwaterInspection = function() {
 		}
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		obj.UNDERWATER_INSPECTION_CRITICAL = buffer.charAt(0);
 		obj.UNDERWATER_INSPECTION_FREQUENCY = buffer.slice(1);
 	};
@@ -1577,7 +1592,7 @@ var SpecialInspection = function() {
 		}
 	};
 
-	this.raw = function(buffer,obj) {
+	this.raw = function(buffer, obj) {
 		obj.SPECIAL_INSPECTION_CRITICAL = buffer.charAt(0);
 		obj.SPECIAL_INSPECTION_FREQUENCY = buffer.slice(1);
 	};
@@ -1655,7 +1670,8 @@ var BridgeImprovementCost = function() {
 	this.objectLength = 6;
 	this.name = "BRIDGE_IMPROVEMENT_COST";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = 1000 * parseInt(buffer, 10);
+		var val = readInt(buffer);
+		obj[this.name] = val!==null ? 1000 * val : null;
 	};
 };
 
@@ -1667,7 +1683,8 @@ var RoadwayImprovementCost = function() {
 	this.objectLength = 6;
 	this.name = "ROADWAY_IMPROVEMENT_COST";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = 1000 * parseInt(buffer, 10);
+		var val = readInt(buffer);
+		obj[this.name] = val!==null ? 1000 * val : null;
 	};
 };
 
@@ -1679,7 +1696,8 @@ var TotalImprovementCost = function() {
 	this.objectLength = 6;
 	this.name = "TOTAL_IMPROVEMENT_COST";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = 1000 * parseInt(buffer, 10);
+		var val = readInt(buffer);
+		obj[this.name] = val!==null ? 1000 * val : null;
 	};
 };
 
@@ -1690,7 +1708,7 @@ var YearOfImprovementCost = function() {
 	this.objectLength = 4;
 	this.name = "YEAR_OF_IMPROVEMENT_COST";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseInt(buffer, 10);
+		obj[this.name] = readInt(buffer);
 	};
 };
 
@@ -1734,7 +1752,7 @@ var NeighboringResponsibility = function() {
 	this.objectLength = 2;
 	this.name = "NEIGHBORING_RESPONSIBILITY";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = .01 * parseInt(buffer, 10);
+		obj[this.name] = readFloat(buffer,'e-2');
 	};
 };
 
@@ -1830,12 +1848,13 @@ var OnNationalHighwaySystem = function() {
 
 /**
  * Item:105
+ * will produce ',' seperated list of land designations per [].toString()
  */
 var FederalLandsDesignation = function() {
 	this.objectLength = 1;
 	this.name = "FEDERAL_LANDS_DESIGNATION";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = this.Types[+buffer].join(';') || null;
+		obj[this.name] = this.Types[+buffer] || null;
 	};
 
 
@@ -1866,7 +1885,7 @@ var ReconstructionYear = function() {
 	this.objectLength = 4;
 	this.name = "RECONSTRUCTION_YEAR";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = parseInt(buffer, 10);
+		obj[this.name] = readInt(buffer);
 	};
 };
 
@@ -2073,7 +2092,7 @@ var VerticalClearanceOfLiftBridge = function() {
 	this.objectLength = 4;
 	this.name = "VERTICAL_CLEARANCE_OF_LIFT_BRIDGE";
 	this.parse = function(buffer, obj) {
-		obj[this.name] = .01 * parseInt(buffer, 10);
+		obj[this.name] = readFloat(buffer,'e-2');
 	};
 };
 

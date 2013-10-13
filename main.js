@@ -5,7 +5,7 @@ var Transform = require('stream').Transform;
 var util = require('util');
 var parser = require('./libs/parse.js');
 var program = require('commander');
-var csvStream = require('json2csv-stream');
+var _ = require('underscore');
 
 
 var DATA_LOC='./data/';
@@ -34,8 +34,15 @@ util.inherits(DataProcessor, Transform);
 function DataProcessor(config)
 {
 	Transform.call(this);
+	//parse type
 	var parseFunc = !config.isRaw?'parse':'raw'
+
+	//csv variables
+	var isCSV = !!config.isCSV
+	var _printHeader=!!config.isCSV; //used for CSV export
+
 	var data="";
+
 	this._transform = function(chunk,encoding,done) {
 		data += chunk.toString('utf8');
 		var str='';
@@ -44,7 +51,11 @@ function DataProcessor(config)
 			//1+ to burn /n
 			data = data.slice(1+parser.BridgeParse.objectLength);
 			var obj = parser.BridgeParse[parseFunc](bit);
-			str += JSON.stringify(obj)+'\n';
+			if(_printHeader) {
+				str += generateHeader(obj) +'\n';
+				_printHeader=false;
+			}
+			str += stringify(obj)+'\n';
 		}
 		this.push(str);
 		// console.log(str.length);
@@ -53,6 +64,32 @@ function DataProcessor(config)
 		}
 	};
 	this.printTime = function() {
+	};
+
+	var stringify = function(obj) {
+		if(isCSV) {
+			var str='';
+			_.each(obj,function(val,key){
+				if(val===null) {
+					str += "|";
+				} else if(['string','boolean','object'].indexOf(typeof val)>=0) {
+					str += val + "|";
+				} else if(_.isNaN(val)) {
+					str += "|";
+				} else if(typeof val === 'number') {
+					str += val + "|";
+				} else if(_.isDate(val)) {
+					str += val.toISOString() + "|";
+				}
+			});
+			return str.slice(0,-1);
+		} else {
+			return JSON.stringify(obj);
+		}
+	};
+
+	var generateHeader = function(obj) {
+		return _.keys(obj).join("|");
 	};
 
 }
@@ -81,14 +118,13 @@ function main()
 	if(program.output) {
 		outputStream = createWriteStream(program.output);
 	}
-	var dataProcessor = new DataProcessor({isRaw:program.raw});
+	var dataProcessor = new DataProcessor({
+		isRaw:program.raw,
+		isCSV: program.CSV
+	});
 
-	if(program.CSV) {
-		var csv = new csvStream({del: '|'});
-		inputStream.pipe(dataProcessor).pipe(csv).pipe(outputStream);
-	} else {
-		inputStream.pipe(dataProcessor).pipe(outputStream);
-	}
+	inputStream.pipe(dataProcessor).pipe(outputStream);
+
 	inputStream.on('end',function(){
 		// dataProcessor.printTime();
 	});
